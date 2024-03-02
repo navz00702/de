@@ -1,0 +1,94 @@
+{
+	"name": "Error row",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Missing_date",
+						"type": "DatasetReference"
+					},
+					"name": "err"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Output",
+						"type": "DatasetReference"
+					},
+					"name": "SalesBad"
+				},
+				{
+					"dataset": {
+						"referenceName": "Output",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "split"
+				},
+				{
+					"name": "FileName"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SaleDate as string,",
+				"          Salesitem as string,",
+				"          country as string,",
+				"          quantity as string",
+				"     ),",
+				"     allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> err",
+				"FileName split(isNull(toDate(SaleDate, 'dd-MMM-yyyy')),",
+				"     disjoint: false) ~> split@(ErrorRows, GoodRows)",
+				"err derive(FileName = 'SalesIndia.csv') ~> FileName",
+				"split@ErrorRows sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SaleDate as string,",
+				"          Salesitem as string,",
+				"          country as string,",
+				"          quantity as string",
+				"     ),",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     mapColumn(",
+				"          SaleDate,",
+				"          Salesitem,",
+				"          country,",
+				"          quantity",
+				"     )) ~> SalesBad",
+				"split@GoodRows sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SaleDate as string,",
+				"          Salesitem as string,",
+				"          country as string,",
+				"          quantity as string",
+				"     ),",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          SaleDate,",
+				"          Salesitem,",
+				"          country,",
+				"          quantity",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

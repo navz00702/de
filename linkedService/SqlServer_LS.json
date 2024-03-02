@@ -1,0 +1,25 @@
+{
+	"name": "SqlServer_LS",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"parameters": {
+			"DBname": {
+				"type": "string"
+			},
+			"SVRname": {
+				"type": "string"
+			},
+			"pwd": {
+				"type": "string"
+			},
+			"username": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "Integrated Security=False;Data Source=@{linkedService().SVRname};Initial Catalog=@{linkedService().DBname};User ID=@{linkedService().username};Password=@{linkedService().pwd}"
+		}
+	}
+}
