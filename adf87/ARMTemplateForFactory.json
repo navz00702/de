@@ -1,0 +1,330 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf87"
+		},
+		"LinkedService1_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'LinkedService1'"
+		},
+		"SqlServer_LS_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'SqlServer_LS'",
+			"defaultValue": "Integrated Security=False;Data Source=@{linkedService().SVRname};Initial Catalog=@{linkedService().DBname};User ID=@{linkedService().username};Password=@{linkedService().pwd}"
+		},
+		"LinkedService1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://adls94.dfs.core.windows.net/"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/gittest')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 1
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Missing_date')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LinkedService1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "SalesIndia2023.csv",
+						"folderPath": "Input",
+						"fileSystem": "adf87"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "SaleDate",
+						"type": "String"
+					},
+					{
+						"name": "Salesitem",
+						"type": "String"
+					},
+					{
+						"name": "country",
+						"type": "String"
+					},
+					{
+						"name": "quantity",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LinkedService1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Output')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LinkedService1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": "Output",
+						"fileSystem": "adf87"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "SaleDate",
+						"type": "String"
+					},
+					{
+						"name": "Salesitem",
+						"type": "String"
+					},
+					{
+						"name": "country",
+						"type": "String"
+					},
+					{
+						"name": "quantity",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LinkedService1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LinkedService1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('LinkedService1_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('LinkedService1_accountKey')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SqlServer_LS')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"DBname": {
+						"type": "string"
+					},
+					"SVRname": {
+						"type": "string"
+					},
+					"pwd": {
+						"type": "string"
+					},
+					"username": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "SqlServer",
+				"typeProperties": {
+					"connectionString": "[parameters('SqlServer_LS_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Azure')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "Managed",
+				"typeProperties": {
+					"computeProperties": {
+						"location": "East US",
+						"dataFlowProperties": {
+							"computeType": "General",
+							"coreCount": 8,
+							"timeToLive": 10,
+							"cleanup": false,
+							"customProperties": []
+						},
+						"copyComputeScaleProperties": {
+							"dataIntegrationUnit": 16,
+							"timeToLive": 5
+						},
+						"pipelineExternalComputeScaleProperties": {
+							"timeToLive": 60,
+							"numberOfPipelineNodes": 1,
+							"numberOfExternalNodes": 1
+						}
+					}
+				},
+				"managedVirtualNetwork": {
+					"type": "ManagedVirtualNetworkReference",
+					"referenceName": "default"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/managedVirtualNetworks/default')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Error row')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Missing_date",
+								"type": "DatasetReference"
+							},
+							"name": "err"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "SalesBad"
+						},
+						{
+							"dataset": {
+								"referenceName": "Output",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "split"
+						},
+						{
+							"name": "FileName"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          SaleDate as string,",
+						"          Salesitem as string,",
+						"          country as string,",
+						"          quantity as string",
+						"     ),",
+						"     allowSchemaDrift: false,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> err",
+						"FileName split(isNull(toDate(SaleDate, 'dd-MMM-yyyy')),",
+						"     disjoint: false) ~> split@(ErrorRows, GoodRows)",
+						"err derive(FileName = 'SalesIndia.csv') ~> FileName",
+						"split@ErrorRows sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SaleDate as string,",
+						"          Salesitem as string,",
+						"          country as string,",
+						"          quantity as string",
+						"     ),",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1,",
+						"     mapColumn(",
+						"          SaleDate,",
+						"          Salesitem,",
+						"          country,",
+						"          quantity",
+						"     )) ~> SalesBad",
+						"split@GoodRows sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SaleDate as string,",
+						"          Salesitem as string,",
+						"          country as string,",
+						"          quantity as string",
+						"     ),",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          SaleDate,",
+						"          Salesitem,",
+						"          country,",
+						"          quantity",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/Missing_date')]",
+				"[concat(variables('factoryId'), '/datasets/Output')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/default')]",
+			"type": "Microsoft.DataFactory/factories/managedVirtualNetworks",
+			"apiVersion": "2018-06-01",
+			"properties": {},
+			"dependsOn": []
+		}
+	]
+}
