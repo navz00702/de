@@ -16,7 +16,15 @@
 			"metadata": "Secure string for 'connectionString' of 'SqlServer_LS'",
 			"defaultValue": "Integrated Security=False;Data Source=@{linkedService().SVRname};Initial Catalog=@{linkedService().DBname};User ID=@{linkedService().username};Password=@{linkedService().pwd}"
 		},
+		"ls_git_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_git'"
+		},
 		"LinkedService1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://adls94.dfs.core.windows.net/"
+		},
+		"ls_git_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://adls94.dfs.core.windows.net/"
 		},
@@ -53,8 +61,14 @@
 					"SqlServer_LS_connectionString": {
 						"value": "[parameters('SqlServer_LS_connectionString')]"
 					},
+					"ls_git_accountKey": {
+						"value": "[parameters('ls_git_accountKey')]"
+					},
 					"LinkedService1_properties_typeProperties_url": {
 						"value": "[parameters('LinkedService1_properties_typeProperties_url')]"
+					},
+					"ls_git_properties_typeProperties_url": {
+						"value": "[parameters('ls_git_properties_typeProperties_url')]"
 					}
 				}
 			},

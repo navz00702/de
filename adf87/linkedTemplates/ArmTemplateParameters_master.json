@@ -11,7 +11,13 @@
 		"SqlServer_LS_connectionString": {
 			"value": "Integrated Security=False;Data Source=@{linkedService().SVRname};Initial Catalog=@{linkedService().DBname};User ID=@{linkedService().username};Password=@{linkedService().pwd}"
 		},
+		"ls_git_accountKey": {
+			"value": ""
+		},
 		"LinkedService1_properties_typeProperties_url": {
+			"value": "https://adls94.dfs.core.windows.net/"
+		},
+		"ls_git_properties_typeProperties_url": {
 			"value": "https://adls94.dfs.core.windows.net/"
 		},
 		"containerUri": {

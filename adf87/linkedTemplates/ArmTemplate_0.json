@@ -16,7 +16,15 @@
 			"metadata": "Secure string for 'connectionString' of 'SqlServer_LS'",
 			"defaultValue": "Integrated Security=False;Data Source=@{linkedService().SVRname};Initial Catalog=@{linkedService().DBname};User ID=@{linkedService().username};Password=@{linkedService().pwd}"
 		},
+		"ls_git_accountKey": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accountKey' of 'ls_git'"
+		},
 		"LinkedService1_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://adls94.dfs.core.windows.net/"
+		},
+		"ls_git_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://adls94.dfs.core.windows.net/"
 		}
@@ -88,6 +96,23 @@
 				"type": "SqlServer",
 				"typeProperties": {
 					"connectionString": "[parameters('SqlServer_LS_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_git')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_git_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "SecureString",
+						"value": "[parameters('ls_git_accountKey')]"
+					}
 				}
 			},
 			"dependsOn": []
@@ -188,6 +213,52 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LinkedService1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/gitempda')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_git",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "emp.csv",
+						"folderPath": "Input",
+						"fileSystem": "adf87"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "eid",
+						"type": "String"
+					},
+					{
+						"name": "name",
+						"type": "String"
+					},
+					{
+						"name": "salary",
+						"type": "String"
+					},
+					{
+						"name": "did",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_git')]"
 			]
 		},
 		{
